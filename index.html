@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Peta Asrama & Bangunan Umum</title>
+
+  <!-- Mapbox -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+
+  <!-- Style -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    header {
+      background-color: #343a40;
+      color: white;
+      padding: 20px 10px;
+      text-align: center;
+      font-size: 22px;
+    }
+
+    section {
+      text-align: center;
+      width: 80%;
+      margin: 20px auto;
+      font-size: 16px;
+      color: #333;
+      line-height: 1.6;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    #map {
+      height: 500px;
+      width: 90%;
+      margin: 20px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    button {
+      display: block;
+      margin: 15px auto;
+      padding: 10px 25px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    footer {
+      background-color: #343a40;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>Peta Asrama Putra, Putri, dan Bangunan Umum</h1>
+  </header>
+
+  <!-- Deskripsi -->
+  <section>
+    <p>
+      Peta ini menampilkan sebaran lokasi <b>Asrama Putra</b>, <b>Asrama Putri</b>, dan 
+      <b>Bangunan Umum</b> di lingkungan <b>Pondok Pesantren Krapyak Yogyakarta</b>.
+      Data bersumber dari hasil digitasi citra satelit dan disajikan dalam format 
+      <b>GeoJSON</b> menggunakan pustaka <b>Mapbox GL JS</b>.
+    </p>
+  </section>
+
+  <!-- Peta -->
+  <div id="map"></div>
+  <button id="fly">Fly ke Lokasi Pesantren</button>
+
+  <!-- Footer -->
+  <footer>
+    <p>WebGIS by Ella | Mapbox GL JS</p>
+  </footer>
+
+  <!-- Script -->
+  <script>
+    // Token Mapbox
+    mapboxgl.accessToken = 'pk.eyJ1IjoibmF0aGFuaWVsbGEiLCJhIjoiY21nZ3N1bTMxMDB1bTJsc2R1ODIybDU0ZyJ9.IHrQhs7Bhi0WLxZOAvbriQ';
+
+    // Inisialisasi peta
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [110.3613, -7.8268],
+      zoom: 16
+    });
+
+    // Kontrol navigasi
+    map.addControl(new mapboxgl.NavigationControl());
+
+    map.on('load', () => {
+      // Asrama Putra
+      map.addSource('asrama_putra', {
+        type: 'geojson',
+        data: 'assets/geojson/Asrama_Putra.geojson'
+      });
+      map.addLayer({
+        id: 'asrama_putra_fill',
+        type: 'fill',
+        source: 'asrama_putra',
+        paint: { 'fill-color': '#0074D9', 'fill-opacity': 0.6 }
+      });
+
+      // Asrama Putri
+      map.addSource('asrama_putri', {
+        type: 'geojson',
+        data: 'assets/geojson/Asrama_Putri.geojson'
+      });
+      map.addLayer({
+        id: 'asrama_putri_fill',
+        type: 'fill',
+        source: 'asrama_putri',
+        paint: { 'fill-color': '#e83e8c', 'fill-opacity': 0.6 }
+      });
+
+      // Bangunan Umum
+      map.addSource('bangunan_umum', {
+        type: 'geojson',
+        data: 'assets/geojson/Bangunan_Umum.geojson'
+      });
+      map.addLayer({
+        id: 'bangunan_umum_fill',
+        type: 'fill',
+        source: 'bangunan_umum',
+        paint: { 'fill-color': '#28a745', 'fill-opacity': 0.5 }
+      });
+      map.addLayer({
+        id: 'bangunan_umum_outline',
+        type: 'line',
+        source: 'bangunan_umum',
+        paint: { 'line-color': '#155724', 'line-width': 2 }
+      });
+
+      // Popup info saat diklik
+      map.on('click', ['asrama_putra_fill', 'asrama_putri_fill', 'bangunan_umum_fill'], (e) => {
+        const props = e.features[0].properties;
+        const html = Object.entries(props)
+          .map(([key, val]) => `<b>${key}</b>: ${val}`)
+          .join('<br>');
+        new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(html).addTo(map);
+      });
+    });
+
+    // Tombol Fly
+    document.getElementById('fly').addEventListener('click', () => {
+      map.flyTo({
+        center: [110.3613, -7.8268],
+        zoom: 17,
+        essential: true
+      });
+    });
+  </script>
+
+</body>
+</html>
